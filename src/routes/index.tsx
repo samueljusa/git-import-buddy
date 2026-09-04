@@ -72,6 +72,11 @@ function Login() {
 
   const submitEmail = async (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = credentialsSchema.safeParse({ email, password, fullName });
+    if (!parsed.success) {
+      setMessage(parsed.error.issues[0]?.message ?? "Informations invalides.");
+      return;
+    }
     setBusy(true);
     setMessage(null);
     if (signUp) {
@@ -86,14 +91,14 @@ function Login() {
       setBusy(false);
       setMessage(
         error
-          ? error.message
+          ? "Inscription impossible. Vérifiez vos informations et réessayez."
           : "Compte créé. Vérifiez votre e-mail pour confirmer votre inscription.",
       );
       return;
     }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) setMessage(error.message);
+    if (error) setMessage("Identifiants invalides.");
     else goNext();
   };
 
