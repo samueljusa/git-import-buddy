@@ -2,6 +2,9 @@
 
 ## En cours
 - [x] Connexion réparée : Google activé + confirmation e-mail désactivée
+- [x] Audit sécurité pré-production (secrets, RLS, validation, uploads, webhooks)
+- [x] Offre de lancement : 2 jours + bandeau avec compteur et réactivation
+
 
 ## Fait
 - [x] Table `community_gallery` + modération centralisée dans le bureau d'administration
