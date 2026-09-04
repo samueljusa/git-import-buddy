@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.3",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://wjtywmozwcovwjkptsfu.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "sam-flash-interface",
+      "version": "0.1.0",
+      "title": "Sam Flash Interface"
+    },
+    "tools": [
+      {
+        "name": "get_profile",
+        "title": "Obtenir mon profil",
+        "description": "Retourne le profil du compte connecté (nom, e-mail, solde de crédits).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_profile",
+        "title": "Mettre à jour mon profil",
+        "description": "Met à jour le nom complet du compte connecté.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "full_name": {
+              "type": "string",
+              "description": "Nouveau nom complet."
+            }
+          },
+          "required": [
+            "full_name"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_generations",
+        "title": "Lister mes générations",
+        "description": "Liste les générations (images/vidéos) du compte connecté, les plus récentes d'abord.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "description": "Nombre maximum de résultats (défaut 20, max 100)."
+            },
+            "media_type": {
+              "type": "string",
+              "enum": [
+                "image",
+                "video"
+              ],
+              "description": "Filtrer par type de média."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_generation",
+        "title": "Créer une génération",
+        "description": "Enregistre une nouvelle demande de génération (prompt, type de média, résolution, durée, ratio) pour le compte connecté.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "prompt": {
+              "type": "string",
+              "description": "Description de l'image ou de la vidéo à créer."
+            },
+            "media_type": {
+              "type": "string",
+              "enum": [
+                "image",
+                "video"
+              ],
+              "description": "Type de média demandé."
+            },
+            "resolution": {
+              "type": "string",
+              "enum": [
+                "480p",
+                "720p",
+                "1080p"
+              ],
+              "description": "Résolution souhaitée."
+            },
+            "duration": {
+              "type": "string",
+              "enum": [
+                "6s",
+                "10s"
+              ],
+              "description": "Durée pour une vidéo."
+            },
+            "aspect_ratio": {
+              "type": "string",
+              "enum": [
+                "2:3",
+                "1:1",
+                "16:9"
+              ],
+              "description": "Format d'image."
+            }
+          },
+          "required": [
+            "prompt",
+            "media_type"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
