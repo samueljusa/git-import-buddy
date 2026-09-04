@@ -25,10 +25,12 @@ function remaining(endsAt: string): { expired: boolean; label: string } {
 /** Bandeau de l'offre de lancement : compteur restant, réactivable après expiration. */
 export function PromoBanner({ enabled }: { enabled: boolean }) {
   const [promoOn, setPromoOn] = useState(false);
+  const [claimed, setClaimed] = useState(true);
   const [sub, setSub] = useState<Sub | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
   const fetchPromo = useServerFn(getPromoSettings);
+  const fetchState = useServerFn(getMyPromoState);
   const activate = useServerFn(activatePromoOffer);
 
   const loadSub = useCallback(async () => {
@@ -43,13 +45,23 @@ export function PromoBanner({ enabled }: { enabled: boolean }) {
     }
   }, []);
 
+  const loadState = useCallback(async () => {
+    try {
+      const s = await fetchState({});
+      setClaimed(s.claimed);
+    } catch {
+      setClaimed(true);
+    }
+  }, [fetchState]);
+
   useEffect(() => {
     if (!enabled) return;
     fetchPromo({})
       .then((p) => setPromoOn(p.enabled))
       .catch(() => setPromoOn(false));
     void loadSub();
-  }, [enabled, fetchPromo, loadSub]);
+    void loadState();
+  }, [enabled, fetchPromo, loadSub, loadState]);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
@@ -61,6 +73,10 @@ export function PromoBanner({ enabled }: { enabled: boolean }) {
   const active =
     sub?.status === "active" && sub.ends_at ? remaining(sub.ends_at) : { expired: true, label: "" };
   void now;
+
+  // Offre déjà utilisée et terminée : plus rien à afficher (une seule activation par compte).
+  if (claimed && active.expired) return null;
+
 
   const claim = async () => {
     setBusy(true);
