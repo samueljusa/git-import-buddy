@@ -14,6 +14,7 @@ import { PromptBar } from "@/components/samflash/PromptBar";
 import { PlansSheet } from "@/components/samflash/PlansSheet";
 import { useGenerations, type Generation } from "@/hooks/useGenerations";
 import { PendingCard } from "@/components/samflash/PendingCard";
+import { PromoBanner } from "@/components/samflash/PromoBanner";
 import { MediaViewer } from "@/components/samflash/MediaViewer";
 import logoAsset from "@/assets/sam-flash-logo.png";
 
@@ -101,6 +102,8 @@ function AppFeed() {
           <User className="h-5 w-5 text-muted-foreground" />
         </button>
       </header>
+
+      <PromoBanner enabled={!!session} />
 
 
       <section className="pt-6">
