@@ -111,7 +111,13 @@ export const activatePromoOffer = createServerFn({ method: "POST" })
       if (error) return { ok: false as const, message: "Activation impossible pour le moment." };
     }
 
+    await supabaseAdmin
+      .from("profiles")
+      .update({ promo_claimed_at: new Date().toISOString() })
+      .eq("id", context.userId);
+
     return { ok: true as const, endsAt };
+
   });
 
 /** Active / désactive l'offre de lancement et ses prix (administrateur). */
