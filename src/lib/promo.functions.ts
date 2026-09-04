@@ -44,9 +44,21 @@ export const getPromoSettings = createServerFn({ method: "GET" }).handler(
   },
 );
 
+/** État de l'offre pour l'utilisateur connecté (déjà utilisée ou non). */
+export const getMyPromoState = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("profiles")
+      .select("promo_claimed_at")
+      .eq("id", context.userId)
+      .maybeSingle();
+    return { claimed: Boolean(data?.promo_claimed_at) };
+  });
+
 /**
- * Active immédiatement l'offre de lancement (Super Grok offert 2 jours)
- * pour l'utilisateur connecté, sans passer par le paiement.
+ * Active l'offre de lancement (Super Grok offert 2 jours) pour l'utilisateur
+ * connecté, une seule fois par compte.
  */
 export const activatePromoOffer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -63,7 +75,18 @@ export const activatePromoOffer = createServerFn({ method: "POST" })
       return { ok: false as const, message: "L'offre de lancement n'est pas active." };
     }
 
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("promo_claimed_at")
+      .eq("id", context.userId)
+      .maybeSingle();
+
+    if (profile?.promo_claimed_at) {
+      return { ok: false as const, message: "Offre déjà utilisée sur ce compte." };
+    }
+
     const endsAt = new Date(Date.now() + PROMO_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
 
     const { data: existing } = await supabaseAdmin
       .from("subscriptions")
