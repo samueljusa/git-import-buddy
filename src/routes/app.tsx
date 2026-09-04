@@ -15,7 +15,7 @@ import { PlansSheet } from "@/components/samflash/PlansSheet";
 import { useGenerations, type Generation } from "@/hooks/useGenerations";
 import { PendingCard } from "@/components/samflash/PendingCard";
 import { MediaViewer } from "@/components/samflash/MediaViewer";
-import logoAsset from "@/assets/sam-flash-logo.png.asset.json";
+import logoAsset from "@/assets/sam-flash-logo.png";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -71,7 +71,7 @@ function AppFeed() {
     >
       <header className="sticky top-0 z-30 flex items-center gap-3 bg-background/60 px-4 py-3 backdrop-blur-xl">
         <img
-          src={logoAsset.url}
+          src={logoAsset}
           alt="Logo Sam flash 2.0"
           className="h-10 w-10 rounded-full object-cover shadow-md"
         />

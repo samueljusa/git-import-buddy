@@ -42,6 +42,7 @@
           "openWorldHint": false
         },
         "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "full_name": {
@@ -51,9 +52,7 @@
           },
           "required": [
             "full_name"
-          ],
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-07/schema#"
+          ]
         },
         "outputSchema": null
       },
@@ -67,23 +66,24 @@
           "openWorldHint": false
         },
         "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "limit": {
+              "description": "Nombre maximum de résultats (défaut 20, max 100).",
               "type": "integer",
-              "description": "Nombre maximum de résultats (défaut 20, max 100)."
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             },
             "media_type": {
+              "description": "Filtrer par type de média.",
               "type": "string",
               "enum": [
                 "image",
                 "video"
-              ],
-              "description": "Filtrer par type de média."
+              ]
             }
-          },
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-07/schema#"
+          }
         },
         "outputSchema": null
       },
@@ -97,6 +97,7 @@
           "openWorldHint": false
         },
         "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "prompt": {
@@ -112,38 +113,36 @@
               "description": "Type de média demandé."
             },
             "resolution": {
+              "description": "Résolution souhaitée.",
               "type": "string",
               "enum": [
                 "480p",
                 "720p",
                 "1080p"
-              ],
-              "description": "Résolution souhaitée."
+              ]
             },
             "duration": {
+              "description": "Durée pour une vidéo.",
               "type": "string",
               "enum": [
                 "6s",
                 "10s"
-              ],
-              "description": "Durée pour une vidéo."
+              ]
             },
             "aspect_ratio": {
+              "description": "Format d'image.",
               "type": "string",
               "enum": [
                 "2:3",
                 "1:1",
                 "16:9"
-              ],
-              "description": "Format d'image."
+              ]
             }
           },
           "required": [
             "prompt",
             "media_type"
-          ],
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-07/schema#"
+          ]
         },
         "outputSchema": null
       }
