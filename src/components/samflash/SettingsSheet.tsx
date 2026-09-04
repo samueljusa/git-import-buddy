@@ -311,8 +311,24 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
 
   const uploadAvatar = async (file: File) => {
     if (!user) return;
+    const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    const MAX_BYTES = 5 * 1024 * 1024;
+    if (!ALLOWED.includes(file.type)) {
+      flash("Image JPEG, PNG, WEBP ou GIF uniquement.");
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      flash("Image trop volumineuse (5 Mo maximum).");
+      return;
+    }
     setUploading(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const EXT_BY_TYPE: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+    };
+    const ext = EXT_BY_TYPE[file.type] ?? "jpg";
     const path = `${user.id}/avatar-${Date.now()}.${ext}`;
     const { error } = await supabase.storage
       .from("avatars")
