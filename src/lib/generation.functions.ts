@@ -108,3 +108,35 @@ export const retryGeneration = createServerFn({ method: "POST" })
       }),
     );
   });
+
+/** Supprime définitivement une création de l'utilisateur (fichier + enregistrement). */
+export const deleteGeneration = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => {
+    if (!input?.id) throw new Error("Identifiant manquant");
+    return { id: String(input.id) };
+  })
+  .handler(async ({ data, context }) => {
+    const { data: row } = await context.supabase
+      .from("generations")
+      .select("id, storage_path")
+      .eq("id", data.id)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    if (!row) return { ok: false as const, message: "Création introuvable." };
+
+    if (row.storage_path) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.storage.from("generations").remove([row.storage_path]);
+    }
+
+    const { error } = await context.supabase
+      .from("generations")
+      .delete()
+      .eq("id", row.id)
+      .eq("user_id", context.userId);
+
+    if (error) return { ok: false as const, message: "Suppression impossible." };
+    return { ok: true as const };
+  });
