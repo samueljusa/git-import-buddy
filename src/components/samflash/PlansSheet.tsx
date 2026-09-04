@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listPrices, type PriceRow } from "@/lib/payments.functions";
-import { activatePromoOffer, getPromoSettings } from "@/lib/promo.functions";
+import { activatePromoOffer, getPromoSettings, PROMO_DAYS } from "@/lib/promo.functions";
 import { toast } from "@/lib/toast";
 import { CheckoutSheet } from "@/components/samflash/CheckoutSheet";
 import {
@@ -125,7 +125,7 @@ export function PlansSheet({ onClose }: { onClose: () => void }) {
     try {
       const result = await activatePromo({});
       if (result.ok) {
-        toast.success("Offre de lancement activée : Super grok vous est offert 30 jours.");
+        toast.success(`Offre de lancement activée : Super grok vous est offert ${PROMO_DAYS} jours.`);
         onClose();
       } else {
         toast.error(result.message);
@@ -284,7 +284,9 @@ export function PlansSheet({ onClose }: { onClose: () => void }) {
         )}
 
         <p className="mt-3 text-center text-sm text-muted-foreground">
-          {promoFree ? "Offre de lancement : 30 jours offerts, sans paiement." : plan.footnote}
+          {promoFree
+            ? `Offre de lancement : ${PROMO_DAYS} jours offerts, sans paiement.`
+            : plan.footnote}
         </p>
         {notice && <p className="mt-2 text-center text-sm text-primary">{notice}</p>}
 

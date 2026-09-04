@@ -45,7 +45,7 @@ export const getPromoSettings = createServerFn({ method: "GET" }).handler(
 );
 
 /**
- * Active immédiatement l'offre de lancement (Super Grok offert 30 jours)
+ * Active immédiatement l'offre de lancement (Super Grok offert 2 jours)
  * pour l'utilisateur connecté, sans passer par le paiement.
  */
 export const activatePromoOffer = createServerFn({ method: "POST" })
@@ -63,7 +63,7 @@ export const activatePromoOffer = createServerFn({ method: "POST" })
       return { ok: false as const, message: "L'offre de lancement n'est pas active." };
     }
 
-    const endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const endsAt = new Date(Date.now() + PROMO_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: existing } = await supabaseAdmin
       .from("subscriptions")
