@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/toast";
-import { ChevronRight, Play, Share2, Sparkles, User } from "lucide-react";
+import { ChevronRight, Play, Share2, Sparkles, Trash2, User } from "lucide-react";
 import { submitToGallery } from "@/lib/community.functions";
+import { deleteGeneration } from "@/lib/generation.functions";
 import { SupportReplyNotifier } from "@/components/samflash/SupportReplyNotifier";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +52,7 @@ function AppFeed() {
   const { session, loading } = useAuth();
   const { items, loading: feedLoading, refresh } = useGenerations(!!session);
   const submit = useServerFn(submitToGallery);
+  const removeItem = useServerFn(deleteGeneration);
 
   useEffect(() => {
     if (!loading && !session) void navigate({ to: "/" });
@@ -62,6 +64,21 @@ function AppFeed() {
       toast.success(t("shareOk"));
     } catch {
       toast.error(t("shareErr"));
+    }
+  };
+
+  const remove = async (id: string) => {
+    if (!window.confirm("Supprimer définitivement cette création ?")) return;
+    try {
+      const result = await removeItem({ data: { id } });
+      if (result.ok) {
+        toast.success("Création supprimée.");
+        void refresh();
+      } else {
+        toast.error(result.message);
+      }
+    } catch {
+      toast.error("Suppression impossible.");
     }
   };
 
@@ -188,6 +205,14 @@ function AppFeed() {
                     className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-background/70 backdrop-blur-md"
                   >
                     <Share2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Supprimer la création"
+                    onClick={() => void remove(g.id)}
+                    className="absolute right-2 top-12 flex h-8 w-8 items-center justify-center rounded-full bg-background/70 text-destructive backdrop-blur-md"
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </button>
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-background/70 px-2 py-1 text-[11px] line-clamp-2 backdrop-blur-md">
                     {g.prompt}

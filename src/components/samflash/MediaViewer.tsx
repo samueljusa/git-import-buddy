@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Captions, Download, Film, Loader2, RefreshCw, X } from "lucide-react";
+import { Captions, Download, Film, Loader2, RefreshCw, Trash2, X } from "lucide-react";
 import { toast } from "@/lib/toast";
-import { generateMedia, retryGeneration } from "@/lib/generation.functions";
+import { deleteGeneration, generateMedia, retryGeneration } from "@/lib/generation.functions";
 import { generateSubtitles } from "@/lib/subtitles.functions";
 import { useI18n } from "@/lib/i18n";
 import { playChime } from "@/lib/chime";
@@ -20,7 +20,7 @@ const action =
 export function MediaViewer({ item, onClose, onChanged }: Props) {
   const { t, lang } = useI18n();
   const isVideo = item.media_type === "video";
-  const [busy, setBusy] = useState<null | "subs" | "retry" | "toVideo">(null);
+  const [busy, setBusy] = useState<null | "subs" | "retry" | "toVideo" | "delete">(null);
   const [vttUrl, setVttUrl] = useState<string | null>(null);
   const [subsOn, setSubsOn] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -28,6 +28,7 @@ export function MediaViewer({ item, onClose, onChanged }: Props) {
   const subtitles = useServerFn(generateSubtitles);
   const retry = useServerFn(retryGeneration);
   const generate = useServerFn(generateMedia);
+  const removeItem = useServerFn(deleteGeneration);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -133,6 +134,26 @@ export function MediaViewer({ item, onClose, onChanged }: Props) {
     }
   };
 
+  const remove = async () => {
+    if (!window.confirm("Supprimer définitivement cette création ?")) return;
+    setBusy("delete");
+    try {
+      const result = await removeItem({ data: { id: item.id } });
+      if (result.ok) {
+        toast.success("Création supprimée.");
+        onChanged?.();
+        onClose();
+      } else {
+        playChime("error");
+        toast.error(result.message);
+      }
+    } catch {
+      toast.error("Suppression impossible.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background/80 backdrop-blur-2xl animate-fade-in">
       <div className="flex items-center gap-3 px-4 py-3">
@@ -203,6 +224,15 @@ export function MediaViewer({ item, onClose, onChanged }: Props) {
         <button type="button" onClick={() => void regenerate()} className={action} disabled={busy === "retry"}>
           {busy === "retry" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           {t("regenerate")}
+        </button>
+        <button
+          type="button"
+          onClick={() => void remove()}
+          aria-label="Supprimer la création"
+          className={`${action} text-destructive`}
+          disabled={busy === "delete"}
+        >
+          {busy === "delete" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
         </button>
       </div>
     </div>
