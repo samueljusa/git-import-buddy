@@ -2,7 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Gift, Timer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { activatePromoOffer, getPromoSettings, PROMO_DAYS } from "@/lib/promo.functions";
+import {
+  activatePromoOffer,
+  getMyPromoState,
+  getPromoSettings,
+  PROMO_DAYS,
+} from "@/lib/promo.functions";
 import { toast } from "@/lib/toast";
 
 type Sub = { tier: string; status: string; ends_at: string | null; auto_renew: boolean | null };
@@ -85,6 +90,7 @@ export function PromoBanner({ enabled }: { enabled: boolean }) {
       if (result.ok) {
         toast.success(`Offre activée : Super grok offert ${PROMO_DAYS} jours.`);
         await loadSub();
+        await loadState();
       } else {
         toast.error(result.message);
       }
