@@ -34,12 +34,25 @@ export type GenerationRow = {
   created_at: string;
 };
 
-export type QuotaReason = "image_daily" | "video_daily" | "video_pause";
+export type QuotaReason =
+  | "image_daily"
+  | "video_daily"
+  | "video_pause"
+  | "video_seconds"
+  | "subscription_expired";
 
 export type GenerationResult =
   | { ok: true; id: string | null; status: "ready"; mediaUrl: string; seconds: number }
-  | { ok: false; reason: "quota"; code: QuotaReason; retryAt: string | null }
+  | {
+      ok: false;
+      reason: "quota";
+      code: QuotaReason;
+      retryAt: string | null;
+      remainingSeconds?: number;
+      limitSeconds?: number;
+    }
   | { ok: false; reason: "error"; message: string; id: string | null };
+
 
 const SIGNED_URL_TTL = 60 * 60 * 6;
 
