@@ -97,14 +97,24 @@ export const activatePromoOffer = createServerFn({ method: "POST" })
     if (existing) {
       const { error } = await supabaseAdmin
         .from("subscriptions")
-        .update({ tier: "super_grok", status: "active", ends_at: endsAt, auto_renew: false })
+        .update({
+          tier: "super_grok",
+          plan_type: "super_grok_monthly",
+          status: "active",
+          is_active: true,
+          started_at: new Date().toISOString(),
+          ends_at: endsAt,
+          auto_renew: false,
+        })
         .eq("id", existing.id);
       if (error) return { ok: false as const, message: "Activation impossible pour le moment." };
     } else {
       const { error } = await supabaseAdmin.from("subscriptions").insert({
         user_id: context.userId,
         tier: "super_grok",
+        plan_type: "super_grok_monthly",
         status: "active",
+        is_active: true,
         ends_at: endsAt,
         auto_renew: false,
       });

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { verifyCallbackToken } from "@/lib/payments/token.server";
+import { expiryFor, planTypeFor } from "@/lib/plans";
 
 const payloadSchema = z
   .object({
@@ -10,11 +11,9 @@ const payloadSchema = z
   })
   .passthrough();
 
-const SUBSCRIPTION_DAYS = 30;
-
 /**
  * Applique le résultat d'un paiement à une commande : met à jour son statut et,
- * en cas de succès, active l'abonnement 30 jours. Idempotent.
+ * en cas de succès, active l'abonnement selon la formule payée. Idempotent.
  */
 export async function applyOrderOutcome(
   transactionId: string,
@@ -26,7 +25,7 @@ export async function applyOrderOutcome(
 
   const { data: order } = await supabaseAdmin
     .from("orders")
-    .select("id, user_id, tier, status, period")
+    .select("id, user_id, tier, status, period, product_id")
     .eq("transaction_id", transactionId)
     .maybeSingle();
 
@@ -44,8 +43,8 @@ export async function applyOrderOutcome(
     .eq("id", order.id);
 
   if (outcome === "payee" && order.user_id) {
-    const days = order.period === "yearly" ? 365 : SUBSCRIPTION_DAYS;
-    const endsAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    const planType = planTypeFor(order.product_id, order.period === "yearly" ? "yearly" : "monthly");
+    const endsAt = expiryFor(planType);
     const { data: existing } = await supabaseAdmin
       .from("subscriptions")
       .select("id")
@@ -57,7 +56,9 @@ export async function applyOrderOutcome(
         .from("subscriptions")
         .update({
           tier: order.tier,
+          plan_type: planType,
           status: "active",
+          is_active: true,
           started_at: new Date().toISOString(),
           ends_at: endsAt,
         })
@@ -66,7 +67,9 @@ export async function applyOrderOutcome(
       await supabaseAdmin.from("subscriptions").insert({
         user_id: order.user_id,
         tier: order.tier,
+        plan_type: planType,
         status: "active",
+        is_active: true,
         ends_at: endsAt,
       });
     }
