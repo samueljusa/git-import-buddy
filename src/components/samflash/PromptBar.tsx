@@ -5,6 +5,7 @@ import { generateMedia } from "@/lib/generation.functions";
 import { enhancePrompt } from "@/lib/prompt.functions";
 import { useI18n } from "@/lib/i18n";
 import { playChime } from "@/lib/chime";
+import { toast } from "@/lib/toast";
 
 
 const chip = (active: boolean) =>
@@ -12,13 +13,34 @@ const chip = (active: boolean) =>
     active ? "bg-foreground text-background" : "text-muted-foreground"
   }`;
 
-/** Message clair selon la limite atteinte par l'offre découverte. */
-function quotaMessage(code: "image_daily" | "video_daily" | "video_pause", retryAt: string | null) {
+/** Message clair selon la limite atteinte. */
+function quotaMessage(
+  code: "image_daily" | "video_daily" | "video_pause" | "video_seconds" | "subscription_expired",
+  retryAt: string | null,
+  remainingSeconds?: number,
+) {
   const when = retryAt
-    ? new Date(retryAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    ? new Date(retryAt).toLocaleString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     : null;
-  if (code === "image_daily") return "Limite de 5 images par jour atteinte. Revenez demain ou passez à une offre supérieure.";
-  if (code === "video_daily") return "Limite de 9 vidéos par jour atteinte. Revenez demain ou passez à une offre supérieure.";
+  if (code === "subscription_expired") {
+    return "Votre abonnement est arrivé à expiration. Veuillez vous réabonner pour continuer à utiliser les fonctionnalités pro de Sam Flash 2.0.";
+  }
+  if (code === "video_seconds") {
+    const left = remainingSeconds ?? 0;
+    if (left > 0) {
+      return `⚠️ Limite quotidienne atteinte : il vous reste seulement ${left} secondes de génération vidéo. Veuillez revenir lorsque votre quota sera renouvelé${when ? ` (le ${when})` : ""}.`;
+    }
+    return `🚫 Limite quotidienne atteinte : vous avez utilisé toutes vos secondes de génération vidéo pour cette période.${when ? ` Votre quota sera renouvelé le ${when}.` : ""}`;
+  }
+  if (code === "image_daily")
+    return "Limite de 5 images par jour atteinte. Revenez demain ou passez à une offre supérieure.";
+  if (code === "video_daily")
+    return "Limite de 9 vidéos par jour atteinte. Revenez demain ou passez à une offre supérieure.";
   return when
     ? `Pause de 3 h après 5 vidéos. Nouvelle génération possible à ${when}.`
     : "Pause de 3 h après 5 vidéos. Réessayez un peu plus tard.";
@@ -101,7 +123,9 @@ export function PromptBar({ onStart, onSettled, onGenerated, onQuotaExceeded }: 
       } else if (result.reason === "quota") {
         playChime("error");
         setText(prompt);
-        setSent(quotaMessage(result.code, result.retryAt));
+        const message = quotaMessage(result.code, result.retryAt, result.remainingSeconds);
+        setSent(message);
+        toast.error(message);
         onQuotaExceeded?.();
       } else {
         playChime("error");
