@@ -11,11 +11,9 @@ const payloadSchema = z
   })
   .passthrough();
 
-const SUBSCRIPTION_DAYS = 30;
-
 /**
  * Applique le résultat d'un paiement à une commande : met à jour son statut et,
- * en cas de succès, active l'abonnement 30 jours. Idempotent.
+ * en cas de succès, active l'abonnement selon la formule payée. Idempotent.
  */
 export async function applyOrderOutcome(
   transactionId: string,
