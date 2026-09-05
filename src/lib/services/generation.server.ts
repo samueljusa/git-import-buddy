@@ -136,32 +136,60 @@ export async function runGeneration(
 ): Promise<GenerationResult> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const seconds = secondsFor(input);
+  const isVideo = input.mediaType === "video";
 
-  const { data: reserved, error: reserveError } = await supabaseAdmin.rpc("reserve_media_quota", {
-    _user_id: userId,
-    _media_type: input.mediaType,
-  });
-  if (reserveError) throw new Error(reserveError.message);
+  if (isVideo) {
+    // Pipeline strict : abonnement valide + solde de secondes suffisant,
+    // vérifiés en base avant tout appel au moteur de génération.
+    const { data: reserved, error: reserveError } = await supabaseAdmin.rpc(
+      "reserve_video_seconds",
+      { _user_id: userId, _seconds: seconds },
+    );
+    if (reserveError) throw new Error(reserveError.message);
 
-  const row = Array.isArray(reserved) ? reserved[0] : reserved;
-  if (!row?.allowed) {
-    return {
-      ok: false,
-      reason: "quota",
-      code: (row?.reason ?? "image_daily") as QuotaReason,
-      retryAt: row?.retry_at ?? null,
-    };
+    const row = Array.isArray(reserved) ? reserved[0] : reserved;
+    if (!row?.allowed) {
+      return {
+        ok: false,
+        reason: "quota",
+        code: (row?.reason ?? "video_seconds") as QuotaReason,
+        retryAt: row?.period_end ?? null,
+        remainingSeconds: row?.remaining_seconds ?? 0,
+        limitSeconds: row?.limit_seconds ?? 0,
+      };
+    }
+  } else {
+    const { data: reserved, error: reserveError } = await supabaseAdmin.rpc("reserve_media_quota", {
+      _user_id: userId,
+      _media_type: input.mediaType,
+    });
+    if (reserveError) throw new Error(reserveError.message);
+
+    const row = Array.isArray(reserved) ? reserved[0] : reserved;
+    if (!row?.allowed) {
+      return {
+        ok: false,
+        reason: "quota",
+        code: (row?.reason ?? "image_daily") as QuotaReason,
+        retryAt: row?.retry_at ?? null,
+      };
+    }
   }
 
   let debited = true;
   const refund = async () => {
     if (!debited) return;
     debited = false;
-    await supabaseAdmin.rpc("refund_media_quota", {
-      _user_id: userId,
-      _media_type: input.mediaType,
-    });
+    if (isVideo) {
+      await supabaseAdmin.rpc("refund_video_seconds", { _user_id: userId, _seconds: seconds });
+    } else {
+      await supabaseAdmin.rpc("refund_media_quota", {
+        _user_id: userId,
+        _media_type: input.mediaType,
+      });
+    }
   };
+
 
   const persist = async (fields: {
     mediaUrl: string | null;
