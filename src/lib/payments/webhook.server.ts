@@ -83,10 +83,7 @@ export async function applyOrderOutcome(
  * Traite les callbacks SwyChr. L'appelant est authentifié par un jeton HMAC
  * dérivé de la clé API serveur et transmis dans l'URL de callback.
  */
-export async function handlePaymentWebhook(
-  request: Request,
-  outcome: "payee" | "echouee",
-): Promise<Response> {
+export async function handlePaymentWebhook(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
 
@@ -140,8 +137,8 @@ export async function handlePaymentWebhook(
 
   const result = await applyOrderOutcome(
     transactionId,
-    outcome,
-    parsed.data.message ?? parsed.data.status ?? null,
+    confirmed,
+    parsed.data.message ?? parsed.data.status ?? remote.data.status,
     body,
   );
   if (result === "introuvable") return new Response("Commande introuvable", { status: 404 });
