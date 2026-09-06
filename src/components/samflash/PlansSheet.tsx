@@ -271,8 +271,24 @@ export function PlansSheet({ onClose }: { onClose: () => void }) {
             </div>
           ) : (
             <div className="rounded-2xl border border-border bg-card/40 p-4">
-              <span className="text-muted-foreground">Mensuel</span>
-              <span className="mt-1 block text-3xl font-semibold">{monthlyLabel}</span>
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="text-muted-foreground">Mensuel</span>
+                {promoAmount !== null && (
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-primary-foreground">
+                    Promo lancement
+                  </span>
+                )}
+              </span>
+              {promoAmount !== null && (
+                <span className="mt-1 block text-sm text-muted-foreground line-through">
+                  {basePriceLabel}
+                </span>
+              )}
+              <span
+                className={`mt-1 block text-3xl font-semibold ${promoFree ? "text-primary" : ""}`}
+              >
+                {monthlyLabel}
+              </span>
             </div>
           )}
         </div>
