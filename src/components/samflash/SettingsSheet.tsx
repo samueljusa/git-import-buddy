@@ -632,6 +632,33 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
                 </span>
               </div>
             </div>
+            <div className="mt-6 overflow-hidden rounded-2xl bg-card divide-y divide-border">
+              <div className="flex items-center px-4 py-4">
+                Formule
+                <span className="ml-auto flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                      myPlan?.isActive
+                        ? "bg-primary/20 text-primary"
+                        : "bg-secondary text-muted-foreground"
+                    }`}
+                  >
+                    {myPlan?.label ?? "Découverte"}
+                  </span>
+                </span>
+              </div>
+              {myPlan?.expiresAt && (
+                <div className="flex px-4 py-4">
+                  Expire le
+                  <span className="ml-auto text-muted-foreground">
+                    {new Date(myPlan.expiresAt).toLocaleString("fr-FR", {
+                      dateStyle: "long",
+                      timeStyle: "short",
+                    })}
+                  </span>
+                </div>
+              )}
+            </div>
             <p className="mt-3 px-1 text-sm text-muted-foreground">
               Connecté en tant que {user?.email ?? "invité"}.
             </p>
