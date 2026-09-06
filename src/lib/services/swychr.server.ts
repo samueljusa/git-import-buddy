@@ -135,6 +135,7 @@ export type PaymentLinkInput = {
   email: string;
   mobile: string;
   description: string;
+  callbackUrl?: string;
 };
 
 export type PaymentLink = {
@@ -161,6 +162,7 @@ export async function createPaymentLink(
     mobile: input.mobile,
     description: input.description,
     pass_digital_charge: true,
+    ...(input.callbackUrl ? { callback_url: input.callbackUrl } : {}),
   });
   if (!result.ok) return result;
 
