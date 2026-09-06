@@ -135,6 +135,7 @@ export type PaymentLinkInput = {
   email: string;
   mobile: string;
   description: string;
+  callbackUrl?: string;
 };
 
 export type PaymentLink = {

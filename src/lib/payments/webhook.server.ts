@@ -117,6 +117,27 @@ export async function handlePaymentWebhook(
     return new Response("Signature invalide", { status: 401 });
   }
 
+  // Sécurité : le statut est toujours revérifié auprès du prestataire avant
+  // d'activer quoi que ce soit. Un callback seul ne suffit jamais.
+  const PAID = ["paid", "success", "successful", "succeeded", "completed", "complete", "settled"];
+  const FAILED = ["failed", "failure", "cancelled", "canceled", "expired", "declined", "rejected"];
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: order } = await supabaseAdmin
+    .from("orders")
+    .select("provider_transaction_id")
+    .eq("transaction_id", transactionId)
+    .maybeSingle();
+  if (!order) return new Response("Commande introuvable", { status: 404 });
+
+  const { fetchPaymentLinkStatus } = await import("@/lib/services/swychr.server");
+  const remote = await fetchPaymentLinkStatus(order.provider_transaction_id ?? transactionId);
+  if (!remote.ok || !remote.data.status) return new Response("ok");
+
+  const normalized = remote.data.status.toLowerCase();
+  const confirmed = PAID.includes(normalized) ? "payee" : FAILED.includes(normalized) ? "echouee" : null;
+  if (!confirmed) return new Response("ok");
+
   const result = await applyOrderOutcome(
     transactionId,
     outcome,
