@@ -150,6 +150,8 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchAccess = useServerFn(getAdminAccess);
+  const fetchMyPlan = useServerFn(getMyPlan);
+  const [myPlan, setMyPlan] = useState<MyPlan | null>(null);
   const fetchTickets = useServerFn(listSupportMessages);
   const fetchReplies = useServerFn(listSupportReplies);
   const submitSupport = useServerFn(createSupportMessage);
