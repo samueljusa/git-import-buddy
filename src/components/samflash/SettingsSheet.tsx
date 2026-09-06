@@ -36,6 +36,7 @@ import {
 import { playChime } from "@/lib/chime";
 import { useServerFn } from "@tanstack/react-start";
 import { getAdminAccess } from "@/lib/admin.functions";
+import { getMyPlan, type MyPlan } from "@/lib/subscription.functions";
 import {
   createSupportMessage,
   listSupportMessages,
@@ -150,6 +151,8 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchAccess = useServerFn(getAdminAccess);
+  const fetchMyPlan = useServerFn(getMyPlan);
+  const [myPlan, setMyPlan] = useState<MyPlan | null>(null);
   const fetchTickets = useServerFn(listSupportMessages);
   const fetchReplies = useServerFn(listSupportReplies);
   const submitSupport = useServerFn(createSupportMessage);
@@ -173,6 +176,13 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
       .then((a) => setIsStaff(a.isStaff))
       .catch(() => setIsStaff(false));
   }, [user, fetchAccess]);
+
+  useEffect(() => {
+    if (!user) return;
+    void fetchMyPlan()
+      .then((p) => setMyPlan(p))
+      .catch(() => setMyPlan(null));
+  }, [user, fetchMyPlan]);
 
   const loadTickets = async () => {
     try {
@@ -621,6 +631,33 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
                   {profile?.email ?? user?.email ?? "—"}
                 </span>
               </div>
+            </div>
+            <div className="mt-6 overflow-hidden rounded-2xl bg-card divide-y divide-border">
+              <div className="flex items-center px-4 py-4">
+                Formule
+                <span className="ml-auto flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                      myPlan?.isActive
+                        ? "bg-primary/20 text-primary"
+                        : "bg-secondary text-muted-foreground"
+                    }`}
+                  >
+                    {myPlan?.label ?? "Découverte"}
+                  </span>
+                </span>
+              </div>
+              {myPlan?.expiresAt && (
+                <div className="flex px-4 py-4">
+                  Expire le
+                  <span className="ml-auto text-muted-foreground">
+                    {new Date(myPlan.expiresAt).toLocaleString("fr-FR", {
+                      dateStyle: "long",
+                      timeStyle: "short",
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
             <p className="mt-3 px-1 text-sm text-muted-foreground">
               Connecté en tant que {user?.email ?? "invité"}.
