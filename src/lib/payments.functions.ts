@@ -158,6 +158,16 @@ export const startPayment = createServerFn({ method: "POST" })
     });
     if (insertError) return { ok: false as const, message: "Impossible d'enregistrer la commande." };
 
+    // URL de callback transmise au prestataire : le jeton HMAC authentifie l'appel.
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
+    const { callbackToken } = await import("@/lib/payments/token.server");
+    const origin =
+      getRequestHeader("origin") ??
+      (getRequestHeader("host") ? `https://${getRequestHeader("host")}` : null);
+    const callbackUrl = origin
+      ? `${origin}/api/public/webhooks/payment-success?transaction_id=${transactionId}&token=${callbackToken(transactionId)}`
+      : undefined;
+
     const { createPaymentLink } = await import("@/lib/services/swychr.server");
     const result = await createPaymentLink({
       countryCode: country.code,
@@ -168,6 +178,7 @@ export const startPayment = createServerFn({ method: "POST" })
       email,
       mobile,
       description: `Abonnement ${price.label} (${data.period === "yearly" ? "annuel" : "mensuel"}) — Sam flash 2.0`,
+      callbackUrl,
     });
 
     if (!result.ok) {
