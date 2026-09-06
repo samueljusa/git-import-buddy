@@ -137,14 +137,13 @@ export function PlansSheet({ onClose }: { onClose: () => void }) {
     }
   };
 
+  const basePriceLabel = price ? `${price.amount_eur.toFixed(2)} € /mois` : plan.monthly;
   const monthlyLabel =
     promoAmount !== null
       ? promoAmount === 0
-        ? "Offert"
+        ? "GRATUIT"
         : `${promoAmount.toFixed(2)} € /mois`
-      : price
-        ? `${price.amount_eur.toFixed(2)} € /mois`
-        : plan.monthly;
+      : basePriceLabel;
   const yearlyAmount = price?.amount_eur_yearly ?? null;
   const yearlyLabel = yearlyAmount !== null ? `${yearlyAmount.toFixed(2)} € /an` : plan.yearly?.price;
   const yearlyPerMonth =
