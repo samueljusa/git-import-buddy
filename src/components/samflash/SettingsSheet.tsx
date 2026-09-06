@@ -177,6 +177,13 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
       .catch(() => setIsStaff(false));
   }, [user, fetchAccess]);
 
+  useEffect(() => {
+    if (!user) return;
+    void fetchMyPlan()
+      .then((p) => setMyPlan(p))
+      .catch(() => setMyPlan(null));
+  }, [user, fetchMyPlan]);
+
   const loadTickets = async () => {
     try {
       setTickets(await fetchTickets());
