@@ -230,15 +230,32 @@ export function PlansSheet({ onClose }: { onClose: () => void }) {
                   period === "monthly" ? "border-primary bg-secondary/60" : "border-border bg-card/40"
                 }`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex flex-wrap items-center gap-2">
                   <span className="text-muted-foreground">Mensuel</span>
-                  {plan.monthlyNote && (
-                    <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-semibold text-primary">
-                      {plan.monthlyNote}
+                  {promoAmount !== null ? (
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-primary-foreground">
+                      Promo lancement
                     </span>
+                  ) : (
+                    plan.monthlyNote && (
+                      <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-semibold text-primary">
+                        {plan.monthlyNote}
+                      </span>
+                    )
                   )}
                 </span>
-                <span className="mt-2 block text-2xl font-semibold">{monthlyLabel}</span>
+                {promoAmount !== null && (
+                  <span className="mt-2 block text-sm text-muted-foreground line-through">
+                    {basePriceLabel}
+                  </span>
+                )}
+                <span
+                  className={`block font-semibold ${
+                    promoFree ? "text-3xl text-primary" : "mt-2 text-2xl"
+                  }`}
+                >
+                  {monthlyLabel}
+                </span>
               </button>
               <button
                 type="button"
